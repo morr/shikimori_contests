@@ -1,0 +1,330 @@
+@import "globals";
+
+$horizontal-offset: 90px;
+$centered-block-offset: 283.5px;
+
+.contest {
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 30px;
+
+  .warning {
+    @include text-font;
+    display: none;
+    margin-top: -20px;
+
+    .red-warning {
+      color: red;
+    }
+  }
+  .contest-description {
+    min-height: auto;
+    padding-right: 0;
+    margin-bottom: 15px;
+  }
+  .vote-container {
+    min-height: 300px;
+
+    .ajax-loading {
+      height: 300px;
+    }
+  }
+  .animes {
+    @include clearfix;
+    margin-bottom: 15px;
+
+    .entry-block {
+      margin-right: 0;
+    }
+    .vote-variant {
+      @include opacity(0.4);
+      @include transition(opacity, 0.3s);
+
+      &.voted, &.hovered {
+        @include opacity(1);
+      }
+      &.unhovered {
+        @include opacity(0.4);
+      }
+      &:first-child {
+        margin-left: $horizontal-offset;
+
+        &.centered {
+          margin-left: $centered-block-offset;
+        }
+      }
+    }
+    .vs {
+      color: darken($gray-color-2, 10%);
+      float: left;
+      font-size: 64px;
+      width: 217px;
+      margin-top: 72px;
+      text-align: center;
+
+      .help, .next, .finish, .refrain, .refrained {
+        @include text-font;
+        color: $gray-color-2;
+        font-size: 11px;
+
+        &.success, &.refrained {
+          display: none;
+        }
+      }
+      .finish {
+        color: darken($gray-color-2, 10%);
+        display: none;
+      }
+      .next {
+        @include normal-link;
+        display: none;
+      }
+      .refrain {
+        @include normal-link;
+        display: block;
+      }
+      &.empty {
+        margin-top: 125px;
+        width: 100%;
+      }
+    }
+  }
+  .vote-graph {
+    @include default-text-field;
+    clear: both;
+    display: block;
+    line-height: 18px;
+    margin: 0 $horizontal-offset 15px;
+    padding: 0;
+
+    .left-part {
+      background-color: #4682b4;
+      color: white;
+      cursor: pointer;
+      overflow: hidden;
+      height: 18px;
+      width: 100%;
+
+      span {
+        padding: 0 5px;
+      }
+      &:hover {
+        background-color: #79a9cf;
+        .right-part {
+          background-color: #edacd9;
+          &:before {
+            border-right: 30px solid #edacd9;
+          }
+        }
+      }
+    }
+    .right-part {
+      background-color: #b78bc7;
+      color: white;
+      float: right;
+      height: 18px;
+      position: relative;
+      text-align: right;
+
+      &:before {
+        border-right: 30px solid #b78bc7;
+        border-top: 70px solid transparent;
+        content: '';
+        left: -30px;
+        position: absolute;
+      }
+    }
+  }
+  .vote-losers {
+    @include clearfix;
+    clear: both;
+    margin: -5px $horizontal-offset 15px;
+
+    .left-part {
+      float: left;
+      width: 170px;
+    }
+    .right-part {
+      float: right;
+      width: 170px;
+    }
+    .center-part {
+      width: 170px;
+      margin-left: $centered-block-offset - $horizontal-offset;
+    }
+    .title {
+      color: #333;
+      margin-bottom: 3px;
+    }
+    a {
+      float: left;
+      margin: 0 8px 5px 0;
+
+      &:nth-child(4n) {
+        margin-right: 0;
+      }
+      img {
+        @include image-selectable-decor;
+        padding: 1px;
+        width: 34px;
+      }
+    }
+  }
+  .vote-day {
+    overflow: hidden;
+
+    .vote-link {
+      cursor: pointer;
+      display: block;
+
+      &.active {
+        font-weight: bold;
+      }
+    }
+    &.hoverable:hover span, &.hoverable.current span {
+      text-decoration: underline;
+    }
+    a {
+      @include text-font;
+      @include normal-link;
+    }
+    .entry, .from, .to, .vs, .group {
+      @include text-font;
+      color: $gray-color;
+    }
+    .entry {
+      color: #123;
+    }
+    .vs {
+      padding-left: 7px;
+      padding-right: 7px;
+    }
+    .from {
+      margin-right: 5px;
+    }
+    .group {
+      font-weight: normal!important;
+      margin-left: 2px;
+      margin-right: 7px;
+    }
+    .to {
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+    .voted, .winner, .loser, .created, .pending, .finished {
+      &:before {
+        font-family: 'shikimori';
+        font-size: 11px;
+        font-weight: normal!important;
+        margin-right: 4px;
+      }
+    }
+    .created:before {
+      color: $gray-color-2;
+      content: '\e83c';
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+    .pending:before {
+      color: $default-selected-color;
+      content: '\e83c';
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+    .finished:before {
+      color: $default-selected-color;
+      content: '\e83b';
+    }
+    .voted:before, .winner:before {
+      color: green;
+      content: '\e817';
+      padding-left: 1px;
+      padding-right: 3px;
+    }
+    .loser:before {
+      color: red;
+      content: '\e813';
+      padding-left: 1px;
+      padding-right: 4px;
+    }
+  }
+  .related-block {
+    border-top: none;
+    .description {
+      padding-right: 0;
+    }
+    .year, .type {
+      display: none;
+    }
+  }
+
+  .results {
+    .rounds {
+      float: right;
+      width: 220px;
+
+      &>p {
+        font-size: 12px;
+        font-weight: bold;
+        color: #444;
+      }
+      .vote-entry {
+        @include ellipsis;
+        font-size: 12px;
+      }
+      .vote-link {
+        display: inline;
+        font-size: 12px;
+
+        &:before {
+          display: inline-block;
+          width: 9px;
+        }
+        &:hover {
+          text-decoration: none;
+
+          .group {
+            text-decoration: underline;
+          }
+        }
+        p {
+          display: inline;
+          font-size: inherit;
+          line-height: inherit;
+        }
+        .group {
+          width: 22px;
+          display: inline-block;
+          margin-left: 4px;
+          font-size: inherit;
+          line-height: inherit;
+        }
+      }
+    }
+    .entry-block {
+      height: 240px;
+      margin-bottom: 40px;
+
+      .title, .misc {
+        display: none;
+      }
+      .tooltip-arrow, .dropshadow-top, .dropshadow-top-right,
+      .dropshadow-right, .dropshadow-bottom-right, .dropshadow-bottom,
+      .dropshadow-bottom-left, .dropshadow-left, .dropshadow-top-left, .rating {
+      /*.tooltip-details > p:first-child {*/
+        display: none;
+      }
+      .tooltip-inner {
+        border: none;
+        padding-left: 0;
+        width: 295px;
+        padding-top: 0;
+        margin-top: 0;
+      }
+      .tooltip-details > p:first-child span {
+        font-size: 13px;
+        color: #123;
+      }
+    }
+  }
+}

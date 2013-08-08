@@ -1,0 +1,31 @@
+- votes.each do |date, group|
+  .vote-day
+    p
+      span.from с
+      = group.first.started_on.strftime '%d.%m.%Y'
+      span.to по
+      = group.first.finished_on.strftime '%d.%m.%Y'
+    .m10
+      - group.each do |vote|
+        span class="vote-link #{vote.right ? vote.state_with_voted : (vote.started? ? 'voted' : vote.state)}" data-remote="true" data-action="#{contest_contest_vote_url contest.entry, vote}" data-type="html" data-id="#{vote.id}"
+          span.group #{vote.group}
+          - if vote.left
+            - if vote.finished? && vote.left_id == vote.winner_id
+              a href="#{anime_url vote.left}" class="bubbled" data-remote="true"
+                = localized_name vote.left
+            - else
+              span.entry
+                = localized_name vote.left
+          - else
+            | &hellip;
+          - if vote.right_type || !vote.left_type
+            span.vs vs
+            - if vote.right
+              - if vote.finished? && vote.right_id == vote.winner_id
+                a href="#{anime_url vote.right}" class="bubbled" data-remote="true"
+                  = localized_name vote.right
+              - else
+                span.entry
+                  = localized_name vote.right
+            - else
+              | &hellip;

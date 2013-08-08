@@ -1,0 +1,33 @@
+.item-content
+  /- if contest.description.present?
+    /.comment-block.contest-description
+      /.description
+        /= contest.description
+
+  .options-floated.roudns
+    - contest.nearby_rounds.each do |round|
+      span.linkeable data-href="#{round_contest_url contest.entry, round: round}" title="#{round.title}"
+        = round.title
+      - if contest.nearby_rounds.size == 2 && round != contest.nearby_rounds.last
+        | &nbsp;&nbsp;/&nbsp;&nbsp;
+
+  .subheadline.m30
+    = contest.displayed_round.title
+
+  - if user_signed_in? && contest.displayed_round.started?
+    .warning.m20
+      span.red-warning Внимание!
+      | &nbsp;Если вы не смотрели хотя бы один из вариантов, то мы рекомендуем вам воздержаться от голосования по данной паре. Это повысит объективность результатов опроса.
+
+  .animes.new.vote-container data-id="#{params[:vote_id]}"
+    .ajax-loading title="Загрузка..."
+
+  .subheadline В этом раунде
+  .subcontent
+    = render 'grouped_votes', contest: contest, votes: contest.grouped_votes(contest.displayed_round)
+
+  - if contest.displayed_round.number > 1 && contest.prior_round.finished?
+    - cache ['prior_round', contest, contest.displayed_round, contest.prior_round, russian_names_key] do
+      .subheadline В прошлом раунде
+      .subcontent
+        = render 'grouped_votes', contest: contest, votes: contest.grouped_votes(contest.prior_round)

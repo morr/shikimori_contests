@@ -81,7 +81,7 @@ class ContestsController < ApplicationController
     if @contest.save
       redirect_to edit_contest_url(@contest)
     else
-      new() and render 'new'
+      new and render :new
     end
   end
 
@@ -99,7 +99,7 @@ class ContestsController < ApplicationController
 
       redirect_to edit_contest_url(@contest)
     else
-      edit() and render 'edit'
+      edit and render :edit
     end
   end
 

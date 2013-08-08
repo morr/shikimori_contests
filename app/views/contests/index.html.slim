@@ -1,0 +1,42 @@
+- content_for :head do
+  = stylesheet_link_tag :contests
+- content_for :tail do
+  = javascript_include_tag :contests
+
+header.head.misc
+  h1
+    = @page_title.last
+  - if user_signed_in? && current_user.contests_moderator?
+    = link_to 'создать', new_contest_url, title: 'Создать новый опрос', class: 'misc'
+  p.notice.clearfix Список всех опросов сайта
+
+.contests
+  - if @active.any?
+    .menu-block
+      .subheadline Активно
+      - @active.each_with_index do |contest, index|
+        p
+          | #{index + 1}.
+          a href="#{contest_url contest}"
+            = contest.title
+
+  - if @created.any?
+    .menu-block
+      .subheadline Подготавливается
+      - @created.each_with_index do |contest, index|
+        p
+          | #{index + 1}.
+          - if user_signed_in? && current_user.contests_moderator?
+            a href="#{edit_contest_url contest}"
+              = contest.title
+          - else
+            span = contest.title
+
+  - if @finished.any?
+    .menu-block
+      .subheadline Завершено
+      - @finished.each_with_index do |contest, index|
+        p
+          | #{index + 1}.
+          a href="#{contest_url contest}"
+            = contest.title

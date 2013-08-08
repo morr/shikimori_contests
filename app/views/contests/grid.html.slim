@@ -1,0 +1,59 @@
+DOCTYPE html
+html
+  head
+    = stylesheet_link_tag :common
+    = stylesheet_link_tag :contests
+    = javascript_include_tag :core
+    = javascript_include_tag :common
+    = javascript_include_tag :contests
+    javascript:
+      IS_LOGGED_IN = false;
+  body.no-layout style="background: white;"
+    header.head.misc
+      h1
+        = @page_title.last
+      = render partial: 'site/breadcrumbs', object: breadcrumbs
+
+    - cache ['grid', @contest, russian_names_key] do
+      .contest-grid class="#{@contest.strategy_type}"
+        .final
+          .round
+            .vote
+              .entry.grid
+                - if @contest.rounds.last.finished?
+                  p.finalist
+                    a href="#{url_for(@contest.final_vote.winner)}"
+                      = localized_name @contest.final_vote.winner
+                - else
+                  p.unknown ???
+                p.date
+                  = Russian::strftime @contest.final_vote.started_on, '%e %b'
+                  - if @contest.final_vote.started_on.strftime('%d.%m') != @contest.final_vote.finished_on.strftime('%d.%m')
+                    | &nbsp;&ndash;&nbsp;
+                    = Russian::strftime @contest.final_vote.finished_on, '%e %b'
+          .left-border
+
+        .winners
+          .group-title Победители (W)
+          - @contest.rounds.each do |round|
+            - next if round.additional?
+            .round class="round-#{round.number} round-#{round.additional ? 'a' : 'n'}"
+              .title
+                | &nbsp;
+              .votes
+                - round.votes.each do |vote|
+                  - next if vote.group == ContestRound::L
+                  = render partial: 'contests/grid_vote', locals: { contest: @contest, round: round, vote: vote, losers_finalist: false }
+
+        - if @contest.strategy.with_additional_rounds?
+          .clearfix.m30
+          .losers
+            .group-title Проигравшие (L)
+            - @contest.rounds.each do |round|
+              .round class="round-#{round.number} round-#{round.additional ? 'a' : 'n'}"
+                .title
+                  | &nbsp;
+                .votes
+                  - round.votes.each do |vote|
+                    - next unless vote.group == ContestRound::L || @contest.rounds.last == round
+                    = render partial: 'contests/grid_vote', locals: { contest: @contest, round: round, vote: vote, losers_finalist: @contest.rounds.last == round }

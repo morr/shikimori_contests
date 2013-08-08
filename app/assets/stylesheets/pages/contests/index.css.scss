@@ -1,0 +1,10 @@
+@import "globals";
+
+.contests {
+  a, span {
+    padding-left: 7px;
+  }
+  a {
+    @include normal-link;
+  }
+}

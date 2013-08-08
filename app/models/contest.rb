@@ -1,4 +1,5 @@
 class Contest < ActiveRecord::Base
+  extend Enumerize
   include PermissionsPolicy
 
   MinimumAnimes = 5
@@ -6,32 +7,35 @@ class Contest < ActiveRecord::Base
 
   belongs_to :user
 
-  attr_accessible :title, :description, :started_on, :phases, :votes_per_round, :vote_duration, :vote_interval, :user_vote_key
+  attr_accessible :title, :description, :started_on, :phases, :votes_per_round, :vote_duration, :vote_interval, :user_vote_key, :wave_days, :strategy_type
 
-  validates_presence_of :title, :description, :user_id, :started_on, :user_vote_key
-  validates_presence_of :vote_interval, :vote_duration, :votes_per_round, :numericality => { :greater_than => 0 }
+  validates_presence_of :title, :user, :started_on, :user_vote_key, :strategy_type
+  validates_presence_of :vote_interval, :vote_duration, :votes_per_round, numericality: { greater_than: 0 }
 
-  has_many :links, :class_name => ContestLink.name,
-                   :dependent => :destroy
+  enumerize :strategy_type, in: [:double_elimination, :play_off], predicates: true
+  delegate :total_rounds, :build_rounds, :results, to: :strategy
 
-  has_many :animes, :through => :links,
-                    :source => :linked,
-                    :source_type => Anime.name,
-                    :order => :name
+  has_many :links, class_name: ContestLink.name,
+                   dependent: :destroy
 
-  has_many :rounds, :class_name => ContestRound.name,
-                    :order => [:number, :additional],
-                    :dependent => :destroy
+  has_many :animes, through: :links,
+                    source: :linked,
+                    source_type: Anime.name,
+                    order: :name
 
-  has_one :thread, :class_name => ContestComment.name,
-                    :foreign_key => :linked_id,
-                    :conditions => { :linked_type => self.name },
-                    :dependent => :destroy
+  has_many :rounds, class_name: ContestRound.name,
+                    order: [:number, :additional],
+                    dependent: :destroy
+
+  has_one :thread, class_name: ContestComment.name,
+                   foreign_key: :linked_id,
+                   conditions: { linked_type: self.name },
+                   dependent: :destroy
 
   before_save :update_permalink
-  after_save :update_thread_title
+  after_save :sync_thread
 
-  state_machine :state, :initial => :created do
+  state_machine :state, initial: :created do
     state :created do
       # подготовка голосования к запуску
       def prepare
@@ -42,49 +46,37 @@ class Contest < ActiveRecord::Base
       end
     end
     state :started
-    state :finished do
-      # результаты голосования
-      def results
-        rounds.includes(votes: [left: [:studios, :genres], right: [:studios, :genres]]).reverse.map do |round|
-          items = round.votes.map do |vote|
-            if vote.group == ContestRound::F
-              [ vote.winner, vote.loser ]
-            elsif vote.group == ContestRound::W
-              [ ]
-            else
-              [ vote.loser ]
-            end
-          end.compact.flatten
-
-          if round.votes.first.group == ContestRound::F
-            items
-          else
-            items.compact.sort_by { |v| -v.score }
-          end
-        end.flatten.take animes.size
-      end
-    end
-
+    state :finished
     event :start do
-      transition :created => :started, :if => lambda { |contest| contest.links.count >= MinimumAnimes && contest.links.count <= MaximumAnimes } # && Contest.all.none?(&:started?)
+      transition created: :started, if: lambda { |contest| contest.links.count >= MinimumAnimes && contest.links.count <= MaximumAnimes } # && Contest.all.none?(&:started?)
     end
     event :finish do
-      transition :started => :finished
+      transition started: :finished
     end
 
-    before_transition :created => :started do |contest, transition|
+    before_transition created: :started do |contest, transition|
       contest.update_attribute :started_on, Date.today if contest.started_on < Date.today
       if contest.rounds.empty? || contest.rounds.any? { |v| v.votes.any? { |v| v.started_on < Date.today } }
         contest.prepare
       end
     end
-    after_transition :created => :started do |contest, transition|
-      contest.send :create_comment_entry unless contest.thread
+    after_transition created: :started do |contest, transition|
+      contest.send :create_thread unless contest.thread
       contest.rounds.first.start!
     end
-    after_transition :started => :finished do |contest, transition|
+    after_transition started: :finished do |contest, transition|
       contest.update_attribute :finished_on, Date.today
       User.update_all contest.user_vote_key => false
+    end
+  end
+
+  class << self
+    # текущий опрос
+    def current
+      Contest
+          .where { state.eq('started') | (state.eq('finished') & finished_on.gte(DateTime.now - 1.week)) }
+          .order(:started_on)
+          .all
     end
   end
 
@@ -106,14 +98,13 @@ class Contest < ActiveRecord::Base
     end
 
     update_attribute :updated_at, DateTime.now if started.any? || finished.any? || round
-    #finish! if rounds.all?(&:finished?)
   end
 
   # побежденные аниме данным аниме
   def defeated_by(entry)
     @defeated ||= {}
     @defeated[entry.id] ||= ContestVote
-        .where(contest_round_id: rounds.map(&:id))
+        .where(round_id: rounds.map(&:id))
         .where(state: 'finished')
         .where(winner_id: entry.id)
         .includes(:left, :right)
@@ -136,15 +127,6 @@ class Contest < ActiveRecord::Base
     title
   end
 
-  class << self
-    # текущий опрос
-    def current
-      Contest.where { state.eq('started') | (state.eq('finished') & finished_on.gte(DateTime.now - 1.week)) }
-          .order(:started_on)
-          .all
-    end
-  end
-
   # ключ в модели пользователя для хранении статуса проголосованности опроса
   def user_vote_key
     case self[:user_vote_key].to_s
@@ -153,22 +135,12 @@ class Contest < ActiveRecord::Base
     end
   end
 
-private
-  # общее количество раундов
-  def total_rounds
-    @total_rounds ||= Math.log(animes.count, 2).ceil * 2
-  end
-
-  # построение списка раундов контеста
-  def build_rounds
-    number = 1
-    additional = false
-
-    1.upto(total_rounds) do |i|
-      self.rounds.create number: number, additional: additional
-
-      number += 1 if additional || number == 1
-      additional = !additional if i >= 2
+  # стратегия создания раундов
+  def strategy
+    @strategy ||= if double_elimination?
+      Contest::DoubleEliminationStrategy.new self
+    else
+      Contest::PlayOffStrategy.new self
     end
   end
 
@@ -177,18 +149,17 @@ private
     rounds.each(&:take_votes)
   end
 
+private
   def update_permalink
-    self.permalink = self.title.permalinked if self.changes.include? :title
+    self.permalink = title.permalinked if changes.include? :title
   end
 
-  def update_thread_title
-    thread.update_attribute(:title, self.title) if thread && thread.title != self.title
+  def sync_thread
+    thread.update_attribute(:title, title) if thread && thread.title != title
   end
 
   # создание AniMangaComment для элемента сразу после создания
-  def create_comment_entry
-    self.thread = ContestComment.new linked: self, section_id: Section::ContestsId
-    self.thread.user_id = self.user_id
-    self.thread.save!
+  def create_thread
+    ContestComment.create! linked: self, section_id: Section::ContestsId, user: user
   end
 end

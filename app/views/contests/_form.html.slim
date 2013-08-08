@@ -1,0 +1,142 @@
+= form_for contest, html: { class: "edit contest"} do |f|
+  - if contest.errors.any?
+    .errors
+      .subheadline.red Ошибки
+      .subcontent
+        == contest.errors.full_messages.join('<br>')
+      div
+
+  .subheadline Общее
+  .subcontent
+    .field-name Название
+    .m10
+      = text_field :contest, :title, class: 'common'
+
+    .field-name.textarea Описание
+    = render partial: 'comments/add', locals: { options: { text: (params[:contest] ? params[:contest][:description] : nil) || contest.description, field_name: 'contest[description]', no_poster: true, no_save: true, no_subscribe: true, no_form: true } }
+
+    .field-name Стратегия
+    .m20
+      = f.select :strategy_type, Contest.strategy_type.options
+
+    .field-name Ключ в таблице пользователя
+    .m20
+      = f.select :user_vote_key, [:can_vote_1, :can_vote_2]
+      span.action-misc Не должно быть голосований, запущенных в одно время с одинаковым ключём. Иначе галочка в меню будет неправильно работать.
+
+  .columns
+    .left-column
+      .subheadline Длительность
+      .subcontent
+        .field-name Голосований в этапе
+        .m10
+          = text_field :contest, :votes_per_round, disabled: !contest.created?, type: 'number', class: 'common'
+
+        .field-name Дней между этапами
+        .m10
+          = text_field :contest, :vote_interval, disabled: !contest.created?, type: 'number', class: 'common'
+
+        .field-name Длительность голосования
+        .m10
+          = text_field :contest, :vote_duration, disabled: !contest.created?, type: 'number', class: 'common'
+
+        .field-name Дата старта
+        .m10
+          = date_select :contest, :started_on, disabled: !contest.created?, start_year: [contest.started_on.year, Date.today.year].min, end_year: [contest.started_on.year, Date.today.year + 1].max
+
+        - if contest.rounds.any?
+          span.action-misc при изменении этих параметров голосования будут перетасованы
+
+    .right-column
+      - if contest.persisted?
+        .subheadline Статус
+        .subcontent
+          p.m5 = t("Contest.#{contest.state}")
+          - if contest.created?
+            a.action href="#{build_contest_url(contest)}"
+              - if contest.rounds.empty?
+                | Сгенерировать голосования
+              - else
+                | Перетасовать голосования
+            - if contest.can_start? & contest.rounds.any?
+              a.action href="#{start_contest_url(contest)}" data-confirm="Вы уверены? После запуска ничего изменить уже будет нельзя!" Запустить
+            span.action-misc действе перезагрузит страницу без сохранения прочих изменений
+
+          - if contest.created?
+            - if contest.links.count < Contest::MinimumAnimes
+              span.action-misc.warn Для старта должно быть минимум #{Contest::MinimumAnimes} аниме
+            - elsif contest.links.count > Contest::MaximumAnimes
+              span.action-misc.warn Для старта должно быть максимум #{Contest::MaximumAnimes} аниме
+            /- elsif Contest.all.any?(&:started?)
+              span.action-misc.warn Для старта не должно быть других запущенных опросов
+          - if contest.can_start?
+            span.action-misc.warn После старта ничего изменить будет нельзя!
+
+          /- if contest.can_finish?
+            /a.action href="#{finish_contest_url(contest)}" data-confirm="Вы уверены?" Остановить
+            /span.action-misc действие перезагрузит страницу без сохранения прочих изменений
+
+      - if contest.rounds.any?
+        .subheadline Турнирная сетка
+        .subcontent.grid
+          a href="#{grid_contest_url contest}" title="Турнирная сетка" Перейти →
+    /- if contest.persisted?
+      /.field-name Общая длительность в днях
+      /.m10
+        /= text_field :contest, :duration_in_days, disabled: true, class: 'common'
+
+  - if contest.persisted?
+    - if contest.created?
+      input.anime-suggest.suggest.subheadline-input.common type="text" data-autocomplete="#{autocomplete_animes_url search: ''}"
+    .subheadline Аниме
+    .subcontent
+      = hidden_field_tag 'animes[]', ''
+      ul.container.m5
+        - contest.animes.uniq(&:id).each do |anime|
+          li
+            - if contest.created?
+              span.item-minus
+            = hidden_field_tag 'animes[]', anime.id
+            a href="#{anime_url(anime)}" class="bubbled" data-remote="true"
+              = anime.name
+              span.score
+                = anime.score
+      p
+        | Итого:&nbsp;
+        span.animes-count #{contest.animes.count}
+        | &nbsp;аниме
+
+  p.buttons.m30
+    span.save.button
+      = contest ? 'Сохранить' : 'Создать'
+  .clearfix
+
+  - if contest.persisted?
+    - if contest.rounds.any?
+      - contest.rounds.each do |round|
+        .subheadline
+          = round.title
+        .subcontent
+          - round.votes.includes(:left, :right).group_by(&:started_on).each do |date, group|
+            .vote-day
+              p
+                span.from с
+                = group.first.started_on
+                span.to по
+                = group.first.finished_on
+              .m10
+                - group.each do |vote|
+                  div
+                    span.group #{vote.group}
+                    - if vote.left
+                      a href="#{anime_url(vote.left)}" class="bubbled" data-remote="true"
+                        = vote.left.name
+                    - else
+                      | &hellip;
+                    - if vote.right_type
+                      span.vs vs
+                      - if vote.right
+                        a href="#{anime_url(vote.right)}" class="bubbled" data-remote="true"
+                          = vote.right.name
+                      - else
+                        | &hellip;

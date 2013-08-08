@@ -1,12 +1,12 @@
 class ContestVote < ActiveRecord::Base
   Undefined = 'undefined variant'
 
-  belongs_to :contest_round
+  belongs_to :round, :class_name => ContestRound.name
   belongs_to :left, :polymorphic => true
   belongs_to :right, :polymorphic => true
+
   has_many :contest_user_votes
-  has_many :user_votes, :class_name => ContestUserVote.name,
-                        :dependent => :destroy
+  has_many :user_votes, :class_name => ContestUserVote.name, :dependent => :destroy
 
   scope :with_user_vote, lambda { |user, ip|
     if user
@@ -35,8 +35,8 @@ class ContestVote < ActiveRecord::Base
 
       # обновление статуса пользоваетля в зависимости от возможности голосовать далее
       def update_user(user, ip)
-        if contest_round.votes.with_user_vote(user, ip).select(&:started?).all?(&:voted?)
-          user.update_attribute contest_round.contest.user_vote_key, false
+        if round.votes.with_user_vote(user, ip).select(&:started?).all?(&:voted?)
+          user.update_attribute round.contest.user_vote_key, false
         end
       end
     end
@@ -73,7 +73,7 @@ class ContestVote < ActiveRecord::Base
     end
 
     after_transition :created => :started do |vote, transition|
-      User.update_all vote.contest_round.contest.user_vote_key => true
+      User.update_all vote.round.contest.user_vote_key => true
 
       if vote.right.nil?
         vote.right = nil
@@ -109,9 +109,9 @@ class ContestVote < ActiveRecord::Base
       vote.update_attribute :winner_id, winner_id
 
       # продвижение вперед победителя
-      vote.contest_round.advance_winner vote.winner, vote.group
+      vote.strategy.advance_winner vote
       # продвижение вперед проигравшего
-      vote.contest_round.advance_loser vote.loser, vote.group if vote.loser
+      vote.strategy.advance_loser vote if vote.loser
     end
   end
 
@@ -162,5 +162,10 @@ class ContestVote < ActiveRecord::Base
   # число голосов за правого кандидата
   def refrained_votes
     @refrained_votes ||= contest_user_votes.where(item_id: 0).count
+  end
+
+  # стратегия турнира
+  def strategy
+    round.contest.strategy
   end
 end

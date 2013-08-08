@@ -12,7 +12,6 @@
 # It's strongly recommended to check this file into your version control system.
 
 ActiveRecord::Schema.define(:version => 20130630132518) do
-
   create_table "contest_links", :force => true do |t|
     t.integer  "contest_id"
     t.integer  "linked_id"
@@ -49,8 +48,8 @@ ActiveRecord::Schema.define(:version => 20130630132518) do
   add_index "contest_user_votes", ["contest_vote_id"], :name => "index_contest_user_votes_on_contest_vote_id"
 
   create_table "contest_votes", :force => true do |t|
-    t.integer  "contest_round_id"
-    t.string   "state",            :default => "created"
+    t.integer  "round_id"
+    t.string   "state",       :default => "created"
     t.string   "group"
     t.integer  "left_id"
     t.string   "left_type"
@@ -63,7 +62,7 @@ ActiveRecord::Schema.define(:version => 20130630132518) do
     t.integer  "winner_id"
   end
 
-  add_index "contest_votes", ["contest_round_id"], :name => "index_contest_votes_on_contest_round_id"
+  add_index "contest_votes", ["round_id"], :name => "index_contest_votes_on_contest_round_id"
 
   create_table "contests", :force => true do |t|
     t.string   "title"
@@ -80,6 +79,7 @@ ActiveRecord::Schema.define(:version => 20130630132518) do
     t.string   "permalink"
     t.date     "finished_on"
     t.string   "user_vote_key"
+    t.string   "strategy_type",   :default => "Contest::DoubleEliminationStrategy", :null => false
   end
 
   add_index "contests", ["updated_at"], :name => "index_contests_on_updated_at"
