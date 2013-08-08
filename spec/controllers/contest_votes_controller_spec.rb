@@ -4,7 +4,7 @@ describe ContestVotesController do
   let(:vote) { create :contest_vote, state: 'started' }
 
   describe :show do
-    before { get :show, contest_id: vote.contest_round.contest_id, id: vote.id }
+    before { get :show, contest_id: vote.round.contest_id, id: vote.id }
     it { should respond_with 200 }
   end
 
@@ -13,7 +13,7 @@ describe ContestVotesController do
     before { sign_in user }
 
     context 'new vote' do
-      before { post :vote, contest_id: vote.contest_round.contest_id, id: vote.id, variant: 'left' }
+      before { post :vote, contest_id: vote.round.contest_id, id: vote.id, variant: 'left' }
 
       it { should respond_with 200 }
       it { should respond_with_content_type :json }
@@ -23,7 +23,7 @@ describe ContestVotesController do
     context 'has user_id vote' do
       before do
         vote.vote_for 'left', user, '123'
-        post :vote, contest_id: vote.contest_round.contest_id, id: vote.id, variant: 'right'
+        post :vote, contest_id: vote.round.contest_id, id: vote.id, variant: 'right'
       end
       let(:json) { JSON.parse response.body }
 
@@ -37,7 +37,7 @@ describe ContestVotesController do
     context 'has ip vote' do
       before do
         vote.vote_for 'left', create(:user), '0.0.0.0'
-        post :vote, contest_id: vote.contest_round.contest_id, id: vote.id, variant: 'right'
+        post :vote, contest_id: vote.round.contest_id, id: vote.id, variant: 'right'
       end
 
       it { should respond_with 422 }

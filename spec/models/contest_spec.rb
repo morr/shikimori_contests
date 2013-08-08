@@ -7,6 +7,16 @@ describe Contest do
     it { should have_many :links }
     it { should have_many :animes }
     it { should have_many :rounds }
+
+    it { should have_one :thread }
+  end
+
+  describe '#validations' do
+    it { should validate_presence_of :title }
+    it { should validate_presence_of :user }
+    it { should validate_presence_of :strategy_type }
+    it { should validate_presence_of :started_on }
+    it { should validate_presence_of :user_vote_key }
   end
 
   describe 'states' do
@@ -71,9 +81,9 @@ describe Contest do
         contest.rounds.first.started?.should be_true
       end
 
-      it 'creates topic' do
+      it 'creates thread' do
         contest.start!
-        contest.thread.present?.should be_true
+        contest.reload.thread.present?.should be_true
       end
     end
 
@@ -98,22 +108,11 @@ describe Contest do
     end
   end
 
-  describe :total_rounds do
-    let(:contest) { build :contest }
-
-    [[128,14], [65,14], [64,12], [50,12], [33,12], [32,10], [16,8], [9,8], [8,6], [7,6]].each do |animes, rounds|
-      it "#{animes} -> #{rounds}" do
-        contest.animes.stub(:count).and_return animes
-        contest.send(:total_rounds).should eq rounds
-      end
-    end
-  end
-
   describe :prepare do
     let(:contest) { create :contest_with_5_animes }
 
     it 'deletes existing rounds' do
-      round = create :contest_round, contest: contest
+      round = create :contest_round, contest_id: contest.id
       contest.rounds << round
       contest.prepare
 
@@ -131,11 +130,11 @@ describe Contest do
 
   describe :fill_rounds do
     let(:contest) { create :contest_with_5_animes }
-    before { contest.send :build_rounds }
+    before { contest.build_rounds }
 
     it 'calls take_votes for each round' do
       contest.rounds.each {|v| v.should_receive :take_votes }
-      contest.send :fill_rounds
+      contest.fill_rounds
     end
   end
 
@@ -182,43 +181,6 @@ describe Contest do
     end
   end
 
-  describe :build_rounds do
-    let(:contest) { create :contest }
-
-    [[128,14], [64,12], [32,10], [16,8], [8,6]].each do |animes, rounds|
-      it "#{animes} -> #{rounds}" do
-        contest.animes.stub(:count).and_return animes
-        expect { contest.send :build_rounds }.to change(ContestRound, :count).by rounds
-      end
-    end
-
-    it 'sets correct number&additional' do
-      contest.animes.stub(:count).and_return 16
-      contest.send :build_rounds
-
-      contest.rounds[0].number.should eq 1
-      contest.rounds[0].additional.should be_false
-
-      contest.rounds[1].number.should eq 2
-      contest.rounds[1].additional.should be_false
-      contest.rounds[2].number.should eq 2
-      contest.rounds[2].additional.should be_true
-
-      contest.rounds[3].number.should eq 3
-      contest.rounds[3].additional.should be_false
-      contest.rounds[4].number.should eq 3
-      contest.rounds[4].additional.should be_true
-
-      contest.rounds[5].number.should eq 4
-      contest.rounds[5].additional.should be_false
-      contest.rounds[6].number.should eq 4
-      contest.rounds[6].additional.should be_true
-
-      contest.rounds[7].number.should eq 5
-      contest.rounds[7].additional.should be_false
-    end
-  end
-
   describe :current_round do
     let(:contest) { create :contest_with_5_animes }
     before { contest.prepare }
@@ -245,7 +207,7 @@ describe Contest do
 
   describe :defeated_by do
     let(:contest) { create :contest }
-    let(:round) { create :contest_round, contest: contest }
+    let(:round) { create :contest_round, contest_id: contest.id }
 
     before do
       @entries = [
@@ -255,52 +217,14 @@ describe Contest do
         create(:anime),
         create(:anime)
       ]
-      create :contest_vote, contest_round: round, left: @entries[0], right: @entries[1], winner_id: @entries[1].id, state: 'finished'
-      create :contest_vote, contest_round: round, left: @entries[0], right: @entries[2], winner_id: @entries[0].id, state: 'finished'
-      create :contest_vote, contest_round: round, left: @entries[0], right: @entries[3], winner_id: @entries[3].id, state: 'finished'
-      create :contest_vote, contest_round: round, left: @entries[0], right: @entries[4], winner_id: @entries[0].id, state: 'finished'
+      create :contest_vote, round: round, left: @entries[0], right: @entries[1], winner_id: @entries[1].id, state: 'finished'
+      create :contest_vote, round: round, left: @entries[0], right: @entries[2], winner_id: @entries[0].id, state: 'finished'
+      create :contest_vote, round: round, left: @entries[0], right: @entries[3], winner_id: @entries[3].id, state: 'finished'
+      create :contest_vote, round: round, left: @entries[0], right: @entries[4], winner_id: @entries[0].id, state: 'finished'
     end
 
     it 'returns defeated entries' do
       contest.defeated_by(@entries[0]).map(&:id).should eq [@entries[2].id, @entries[4].id]
-    end
-  end
-
-  describe :results do
-    let(:contest) { create :contest_with_8_animes }
-    let(:results) { contest.results }
-    before do
-      contest.start!
-      contest.rounds.each do |round|
-        contest.current_round.votes.each { |v| v.update_attributes started_on: Date.yesterday, finished_on: Date.yesterday }
-        contest.process!
-        contest.reload
-      end
-    end
-
-    it 'correct count' do
-      results.should have(contest.animes.size).items
-    end
-
-    it 'final' do
-      results[0].id.should eq contest.rounds[5].votes.first.winner.id
-      results[1].id.should eq contest.rounds[5].votes.first.loser.id
-    end
-
-    it 'semifinal' do
-      results[2].id.should eq contest.rounds[4].votes.first.loser.id
-      results[3].id.should eq contest.rounds[3].votes.last.loser.id
-    end
-
-    it 'regular rounds by score' do
-      contest.rounds[1].votes[3].loser.update_attribute :score, 9
-      contest.rounds[1].votes[2].loser.update_attribute :score, 5
-
-      results[4].id.should eq contest.rounds[2].votes.first.loser.id
-      results[5].id.should eq contest.rounds[2].votes.last.loser.id
-
-      results[6].id.should eq contest.rounds[1].votes[3].loser.id
-      results[7].id.should eq contest.rounds[1].votes[2].loser.id
     end
   end
 
@@ -325,9 +249,23 @@ describe Contest do
     end
   end
 
+  describe :strategy do
+    subject { create :contest, strategy_type: strategy_type }
+
+    context :double_elimination do
+      let(:strategy_type) { :double_elimination }
+      its(:strategy) { should be_kind_of Contest::DoubleEliminationStrategy }
+    end
+
+    context :play_off do
+      let(:strategy_type) { :play_off }
+      its(:strategy) { should be_kind_of Contest::PlayOffStrategy }
+    end
+  end
+
   context '#class methods' do
     describe :current do
-      subject { Contest.current }
+      subject { Contest.current.map(&:id) }
 
       context 'nothing' do
         let!(:contest) { create :contest }
@@ -335,27 +273,27 @@ describe Contest do
       end
 
       context 'finished not so long ago' do
-        let!(:contest) { create :contest, state: 'finished', finished_on: DateTime.now - 6.days }
-        it { should eq [contest] }
+        let!(:contest) { create :contest, state: 'finished', finished_on: Date.today - 6.days }
+        it { should eq [contest.id] }
 
         context 'new one started' do
           let!(:contest2) { create :contest, state: 'started' }
-          it { should eq [contest, contest2] }
+          it { should eq [contest.id, contest2.id] }
 
           context 'and one more started' do
             let!(:contest3) { create :contest, state: 'started' }
-            it { should eq [contest, contest2, contest3] }
+            it { should eq [contest.id, contest2.id, contest3.id] }
           end
         end
       end
 
       context 'finished long ago' do
-        let!(:contest) { create :contest, state: 'finished', finished_on: DateTime.now - 8.days }
-        it { should eq [] }
+        let!(:contest) { create :contest, state: 'finished', finished_on: Date.today - 8.days }
+        it { should be_empty }
 
         context 'new one started' do
           let!(:contest) { contest = create :contest, state: 'started' }
-          it { should eq [contest] }
+          it { should eq [contest.id] }
         end
       end
     end

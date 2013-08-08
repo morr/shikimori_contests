@@ -67,7 +67,7 @@ describe ContestsController do
         contest.current_round.votes.update_all started_on: Date.yesterday, finished_on: Date.yesterday
         contest.current_round.reload
         contest.current_round.finish!
-        get 'users', id: contest.id, round: 1, vote_id: contest.rounds.first.votes.first.id
+        get :users, id: contest.id, round: 1, vote_id: contest.rounds.first.votes.first.id
       end
       it { should respond_with 200 }
       it { should respond_with_content_type :html }
@@ -75,14 +75,14 @@ describe ContestsController do
   end
 
   describe :new do
-    before { get 'new' }
+    before { get :new }
 
     it { should respond_with 200 }
     it { should respond_with_content_type :html }
   end
 
   describe :edit do
-    before { get 'edit', id: contest.id }
+    before { get :edit, id: contest.id }
 
     it { should respond_with 200 }
     it { should respond_with_content_type :html }
@@ -90,7 +90,7 @@ describe ContestsController do
 
   describe :update do
     context 'when success' do
-      before { put 'update', id: contest.id, contest: contest.attributes.merge(description: 'zxc') }
+      before { put :update, id: contest.id, contest: contest.attributes.except('id', 'user_id', 'state', 'created_at', 'updated_at', 'permalink', 'finished_on').merge(description: 'zxc') }
 
       it { should respond_with 302 }
       it { should redirect_to edit_contest_url(id: assigns(:contest).to_param) }
@@ -99,7 +99,7 @@ describe ContestsController do
     end
 
     context 'when validation errors' do
-      before { put 'update', id: contest.id, contest: { description: '' } }
+      before { put 'update', id: contest.id, contest: { title: '' } }
 
       it { should respond_with 200 }
       it { should respond_with_content_type :html }
@@ -109,7 +109,7 @@ describe ContestsController do
 
   describe :create do
     context 'when success' do
-      before { post 'create', contest: contest.attributes }
+      before { post :create, contest: contest.attributes.except('id', 'user_id', 'state', 'created_at', 'updated_at', 'permalink', 'finished_on') }
 
       it { should respond_with 302 }
       it { should redirect_to edit_contest_url(id: assigns(:contest).to_param) }
@@ -117,7 +117,7 @@ describe ContestsController do
     end
 
     context 'when validation errors' do
-      before { post 'create', contest: {} }
+      before { post :create, contest: {} }
 
       it { should respond_with 200 }
       it { should respond_with_content_type :html }
@@ -127,7 +127,7 @@ describe ContestsController do
 
   describe :start do
     let(:contest) { create :contest_with_5_animes }
-    before { get 'start', id: contest.id }
+    before { get :start, id: contest.id }
 
     it { should respond_with 302 }
     it { should redirect_to edit_contest_url(id: assigns(:contest).to_param) }
@@ -148,7 +148,7 @@ describe ContestsController do
 
   describe :build do
     let(:contest) { create :contest_with_5_animes }
-    before { get 'build', id: contest.id }
+    before { get :build, id: contest.id }
 
     it { should respond_with 302 }
     it { should redirect_to edit_contest_url(id: assigns(:contest).to_param) }

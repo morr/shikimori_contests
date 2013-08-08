@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe ContestVote do
   context '#relations' do
-    it { should belong_to :contest_round }
+    it { should belong_to :round }
     it { should belong_to :left }
     it { should belong_to :right }
     it { should have_many :user_votes }
@@ -67,17 +67,17 @@ describe ContestVote do
       [:can_vote_1, :can_vote_2].each do |user_vote_key|
         describe user_vote_key do
           before do
-            vote.contest_round.contest.update_attribute :user_vote_key, user_vote_key
+            vote.round.contest.update_attribute :user_vote_key, user_vote_key
             vote.reload
 
             create :user
             create :user
 
-            vote.contest_round.contest.stub(:started?).and_return true
+            vote.round.contest.stub(:started?).and_return true
             vote.start!
           end
 
-          it { User.all.all? {|v| v.can_vote?(vote.contest_round.contest) }.should be true }
+          it { User.all.all? {|v| v.can_vote?(vote.round.contest) }.should be true }
         end
       end
 
@@ -166,12 +166,12 @@ describe ContestVote do
 
       describe 'advance participants' do
         it 'winner' do
-          vote.contest_round.should_receive(:advance_winner).with vote.left, vote.group
+          vote.strategy.should_receive(:advance_winner).with vote
           vote.finish!
         end
 
         it 'loser' do
-          vote.contest_round.should_receive(:advance_loser).with vote.right, vote.group
+          vote.strategy.should_receive(:advance_loser).with vote
           vote.finish!
         end
       end
@@ -307,8 +307,8 @@ describe ContestVote do
     let(:round) { create :contest_round, state: 'started' }
     subject { user.can_vote_1? }
     before do
-      create :contest_vote, state: 'started', left_type: 'Anime', right_type: 'Anime', left_id: 1, right_id: 2, contest_round_id: round.id
-      create :contest_vote, state: 'started', left_type: 'Anime', right_type: 'Anime', left_id: 3, right_id: 4, contest_round_id: round.id
+      create :contest_vote, state: 'started', left_type: 'Anime', right_type: 'Anime', left_id: 1, right_id: 2, round_id: round.id
+      create :contest_vote, state: 'started', left_type: 'Anime', right_type: 'Anime', left_id: 3, right_id: 4, round_id: round.id
     end
 
     describe 'not updated' do
