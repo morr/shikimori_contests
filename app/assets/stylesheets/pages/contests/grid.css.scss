@@ -22,7 +22,7 @@ $grid-color: $gray-color-0;
     .title {
       line-height: 1px;
     }
-    .vote {
+    .match {
       .entry {
         position: relative;
         height: $entry-height - 2px;
@@ -96,7 +96,7 @@ $grid-color: $gray-color-0;
         @include image-selectable-decor;
         padding: 2px;
       }
-      .votes-num {
+      .matches-num {
         @include text-font;
         cursor: default;
         font-size: 11px;
@@ -115,7 +115,7 @@ $grid-color: $gray-color-0;
     }
   }
   .round-1 {
-    .vote {
+    .match {
       p {
         margin-left: -15px!important;
       }
@@ -125,7 +125,7 @@ $grid-color: $gray-color-0;
     }
   }
   .round-2 {
-    .vote {
+    .match {
       margin-top: $entry-height*0.5;
       margin-bottom: $entry-height;
 
@@ -135,7 +135,7 @@ $grid-color: $gray-color-0;
     }
   }
   .round-3 {
-    .vote {
+    .match {
       margin-top: $entry-height*1.5;
       margin-bottom: $entry-height*3;
 
@@ -145,7 +145,7 @@ $grid-color: $gray-color-0;
     }
   }
   .round-4 {
-    .vote {
+    .match {
       margin-top: $entry-height*3.5;
       margin-bottom: $entry-height*7;
 
@@ -155,7 +155,7 @@ $grid-color: $gray-color-0;
     }
   }
   .round-5 {
-    .vote {
+    .match {
       margin-top: $entry-height*7.25;
       margin-bottom: $entry-height*14.5;
 
@@ -165,7 +165,7 @@ $grid-color: $gray-color-0;
     }
   }
   .round-6 {
-    .vote {
+    .match {
       margin-top: $entry-height*15;
 
       .grid {
@@ -174,7 +174,7 @@ $grid-color: $gray-color-0;
     }
   }
   .round-7 {
-    .vote {
+    .match {
       margin-top: $entry-height*30.75;
 
       .grid {
@@ -183,11 +183,11 @@ $grid-color: $gray-color-0;
     }
   }
   .round-8 {
-    .vote {
+    .match {
       margin-top: $entry-height*54.5;
     }
   }
-  .vote:last-child {
+  .match:last-child {
     margin-bottom: 0;
   }
   // спец стили для double_elimination
@@ -221,13 +221,13 @@ $grid-color: $gray-color-0;
     .round {
       width: $round-width*2;
 
-      .vote p {
+      .match p {
         width: $round-width*2 - 20px;
       }
       &.round-1, &:last-child {
         width: $round-width;
 
-        .vote p {
+        .match p {
           width: $round-width - 20px;
         }
       }
@@ -241,40 +241,40 @@ $grid-color: $gray-color-0;
     .title {
       margin-bottom: -45px;
     }
-    .round-1 .votes {
+    .round-1 .matches {
       visibility: hidden;
     }
-    .round-2.round-a .votes {
+    .round-2.round-a .matches {
       padding-top: $entry-height;
     }
-    .round-3.round-n .votes {
+    .round-3.round-n .matches {
       padding-top: $entry-height;
     }
-    .round-3.round-a .votes {
+    .round-3.round-a .matches {
       margin-top: -$entry-height*2;
     }
-    .round-4.round-n .votes {
+    .round-4.round-n .matches {
       margin-top: -$entry-height*2;
     }
-    .round-4.round-a .votes {
+    .round-4.round-a .matches {
       padding-top: $entry-height*2.75;
     }
-    .round-5.round-n .votes {
+    .round-5.round-n .matches {
       padding-top: $entry-height*2.75;
     }
-    .round-5.round-a .votes {
+    .round-5.round-a .matches {
       margin-top: -$entry-height*5.125;
     }
-    .round-6.round-n .votes {
+    .round-6.round-n .matches {
       margin-top: -$entry-height*5.125;
     }
-    .round-6.round-a .votes {
+    .round-6.round-a .matches {
       margin-top: -$entry-height*9.5;
       .grid {
         height: $entry-height*20.075;
       }
     }
-    .round-7.round-n .votes {
+    .round-7.round-n .matches {
       margin-top: -$entry-height*15.25;
     }
   }

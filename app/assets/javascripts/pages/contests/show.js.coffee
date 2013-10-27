@@ -10,13 +10,13 @@ $ ->
     entry_block_a = '.entry-block > a > div'
 
   # выбор первого голосования в списке
-  vote_id = $('.vote-container').data('id')
+  vote_id = $('.match-container').data('id')
   $vote = if vote_id
-    $('.vote-link[data-id='+vote_id+']')
+    $('.match-link[data-id='+vote_id+']')
   else
-    $('.vote-link.pending').first()
+    $('.match-link.pending').first()
 
-  $vote = $('.vote-link').first() unless $vote.length
+  $vote = $('.match-link').first() unless $vote.length
   $vote.trigger 'click'
   $.hideCursorMessage()
 
@@ -28,15 +28,15 @@ $ ->
   $(entry_block_a+', .entry-block .entry-tooltip').off 'mouseenter mouseleave'
 
 # голосование загружено
-$(document.body).on 'ajax:success', '.vote-container', (e) ->
+$(document.body).on 'ajax:success', '.match-container', (e) ->
   # подсветка по ховеру курсора
-  $('.vote-variant', e.target).hover ->
-    unless $('.vote-variant.voted', e.target).length
-      $('.vote-variant', e.target).addClass 'unhovered'
+  $('.match-member', e.target).hover ->
+    unless $('.match-member.voted', e.target).length
+      $('.match-member', e.target).addClass 'unhovered'
       $(@).removeClass('unhovered')
           .addClass 'hovered'
   , ->
-    $('.vote-variant', e.target).removeClass 'hovered unhovered'
+    $('.match-member', e.target).removeClass 'hovered unhovered'
 
   # пометка проголосованным, если это указано
   variant = $('.vote', e.target).data 'voted'
@@ -52,20 +52,20 @@ $(document.body).on 'ajax:success', '.vote-container', (e) ->
   process_current_dom()
 
 # клик по одному из вариантов голосования
-$(document.body).on 'click', '.vote-variant img', (e) ->
+$(document.body).on 'click', '.match-member img', (e) ->
   return if in_new_tab(e)
   state = $(e.target).closest('.vote').data 'state'
   if state == 'started'
-    $(e.target).closest('.vote-variant').callRemote()
+    $(e.target).closest('.match-member').callRemote()
   false
 
 # успешное голосование за один из вариантов
-$(document.body).on 'ajax:success', '.vote-variant, .refrain', (e, data) ->
+$(document.body).on 'ajax:success', '.match-member, .refrain', (e, data) ->
   $contest = $('.contest')
   # скрываем всё
   $('.help, .refrained, .next, .refrain', $contest).hide()
   # убираем помеченное проголосованным
-  $('.vote-variant', $contest).removeClass 'voted'
+  $('.match-member', $contest).removeClass 'voted'
 
   # это аякс запрос голосования
   if data
@@ -88,15 +88,19 @@ $(document.body).on 'ajax:success', '.vote-variant, .refrain', (e, data) ->
       $('.refrain', $contest).show()
       $('.help.success', $contest).show()
       # помечаем проголосованный вариант
-      $('.vote-variant[data-variant='+data.variant+']', $contest).addClass 'voted'
+      $('.match-member[data-variant='+data.variant+']', $contest).addClass 'voted'
 
   # помечаем проголосованное голосование
-  $link = $('.vote-link[data-id='+data.vote_id+']', $contest)
-  if $link.hasClass 'pending'
-    $link.removeClass('pending').addClass 'voted'
+  $link = $('.match-link[data-id='+data.vote_id+']', $contest)
+  $link
+    .removeClass('pending')
+    .removeClass('voted-left')
+    .removeClass('voted-right')
+    .removeClass('voted-none')
+    .addClass("voted-#{data.variant}")
 
   # не проголосованные голосования
-  $vote = $('.vote-link.pending', $contest).first()
+  $vote = $('.match-link.pending', $contest).first()
 
   # если есть
   if $vote.length
@@ -113,22 +117,22 @@ $(document.body).on 'ajax:success', '.vote-variant, .refrain', (e, data) ->
     $('.finish', $contest).show()
     # и скрываем в верхнем меню иконку
     if data.ajax
-      $('.userbox .contest[data-count=1]').hide()
+      $('.menu .contest[data-count=1]').hide()
 
 # клик на переход к следующей паре
-$(document.body).on 'click', '.vote-container .next', ->
-  $('.vote-link.pending').first().trigger 'click'
+$(document.body).on 'click', '.match-container .next', ->
+  $('.match-link.pending').first().trigger 'click'
 
 # переключение между голосованиями
-$(document.body).on 'ajax:before', '.vote-link', (e, data) ->
-  unless $('.vote-container > img').length
-    $('.vote-container').stop(true, false).animate opacity: 0.3
+$(document.body).on 'ajax:before', '.match-link', (e, data) ->
+  unless $('.match-container > img').length
+    $('.match-container').stop(true, false).animate opacity: 0.3
 
-$(document.body).on 'ajax:success', '.vote-link', (e, data) ->
-  $('.vote-link').removeClass 'active'
+$(document.body).on 'ajax:success', '.match-link', (e, data) ->
+  $('.match-link').removeClass 'active'
   $(e.target).addClass('active')
 
-  $('.vote-container').html(data)
+  $('.match-container').html(data)
       .stop(true, false)
       .trigger('ajax:success')
       .animate opacity: 1

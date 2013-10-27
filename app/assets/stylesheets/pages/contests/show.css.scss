@@ -8,6 +8,15 @@ $centered-block-offset: 283.5px;
   position: relative;
   margin-bottom: 30px;
 
+  &.swiss {
+    .group {
+      display: none;
+
+      .title {
+        display: none;
+      }
+    }
+  }
   .warning {
     @include text-font;
     display: none;
@@ -22,7 +31,7 @@ $centered-block-offset: 283.5px;
     padding-right: 0;
     margin-bottom: 15px;
   }
-  .vote-container {
+  .match-container {
     min-height: 300px;
 
     .ajax-loading {
@@ -36,7 +45,7 @@ $centered-block-offset: 283.5px;
     .entry-block {
       margin-right: 0;
     }
-    .vote-variant {
+    .match-member {
       @include opacity(0.4);
       @include transition(opacity, 0.3s);
 
@@ -135,7 +144,7 @@ $centered-block-offset: 283.5px;
       }
     }
   }
-  .vote-losers {
+  .match-losers {
     @include clearfix;
     clear: both;
     margin: -5px $horizontal-offset 15px;
@@ -170,84 +179,6 @@ $centered-block-offset: 283.5px;
       }
     }
   }
-  .vote-day {
-    overflow: hidden;
-
-    .vote-link {
-      cursor: pointer;
-      display: block;
-
-      &.active {
-        font-weight: bold;
-      }
-    }
-    &.hoverable:hover span, &.hoverable.current span {
-      text-decoration: underline;
-    }
-    a {
-      @include text-font;
-      @include normal-link;
-    }
-    .entry, .from, .to, .vs, .group {
-      @include text-font;
-      color: $gray-color;
-    }
-    .entry {
-      color: #123;
-    }
-    .vs {
-      padding-left: 7px;
-      padding-right: 7px;
-    }
-    .from {
-      margin-right: 5px;
-    }
-    .group {
-      font-weight: normal!important;
-      margin-left: 2px;
-      margin-right: 7px;
-    }
-    .to {
-      margin-left: 5px;
-      margin-right: 5px;
-    }
-    .voted, .winner, .loser, .created, .pending, .finished {
-      &:before {
-        font-family: 'shikimori';
-        font-size: 11px;
-        font-weight: normal!important;
-        margin-right: 4px;
-      }
-    }
-    .created:before {
-      color: $gray-color-2;
-      content: '\e83c';
-      padding-left: 2px;
-      padding-right: 2px;
-    }
-    .pending:before {
-      color: $default-selected-color;
-      content: '\e83c';
-      padding-left: 2px;
-      padding-right: 2px;
-    }
-    .finished:before {
-      color: $default-selected-color;
-      content: '\e83b';
-    }
-    .voted:before, .winner:before {
-      color: green;
-      content: '\e817';
-      padding-left: 1px;
-      padding-right: 3px;
-    }
-    .loser:before {
-      color: red;
-      content: '\e813';
-      padding-left: 1px;
-      padding-right: 4px;
-    }
-  }
   .related-block {
     border-top: none;
     .description {
@@ -257,73 +188,23 @@ $centered-block-offset: 283.5px;
       display: none;
     }
   }
+  .rating {
+    @include text-font;
+    margin-bottom: 30px;
+    padding-left: 5px;
 
-  .results {
-    .rounds {
-      float: right;
-      width: 220px;
+    .member {
+      @include clearfix;
+      @include ellipsis;
+      height: 22px;
 
-      &>p {
-        font-size: 12px;
-        font-weight: bold;
-        color: #444;
+      .index {
+        float: left;
+        padding-right: 5px;
+        color: $gray-color-2;
       }
-      .vote-entry {
-        @include ellipsis;
-        font-size: 12px;
-      }
-      .vote-link {
-        display: inline;
-        font-size: 12px;
-
-        &:before {
-          display: inline-block;
-          width: 9px;
-        }
-        &:hover {
-          text-decoration: none;
-
-          .group {
-            text-decoration: underline;
-          }
-        }
-        p {
-          display: inline;
-          font-size: inherit;
-          line-height: inherit;
-        }
-        .group {
-          width: 22px;
-          display: inline-block;
-          margin-left: 4px;
-          font-size: inherit;
-          line-height: inherit;
-        }
-      }
-    }
-    .entry-block {
-      height: 240px;
-      margin-bottom: 40px;
-
-      .title, .misc {
-        display: none;
-      }
-      .tooltip-arrow, .dropshadow-top, .dropshadow-top-right,
-      .dropshadow-right, .dropshadow-bottom-right, .dropshadow-bottom,
-      .dropshadow-bottom-left, .dropshadow-left, .dropshadow-top-left, .rating {
-      /*.tooltip-details > p:first-child {*/
-        display: none;
-      }
-      .tooltip-inner {
-        border: none;
-        padding-left: 0;
-        width: 295px;
-        padding-top: 0;
-        margin-top: 0;
-      }
-      .tooltip-details > p:first-child span {
-        font-size: 13px;
-        color: #123;
+      a {
+        @include normal-link;
       }
     }
   }

@@ -1,7 +1,7 @@
 class ContestComment < AniMangaComment
-  # текст топика
   def text
-    self[:text] || "Топик [contest=#{self.linked_id}]опроса[/contest]."
+    "Топик [contest=#{self.linked_id}]опроса[/contest].
+    Статус: #{linked.decorate.status}"
   end
 
   def title

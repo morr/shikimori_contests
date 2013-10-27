@@ -11,32 +11,16 @@ header.head.misc
   p.notice.clearfix Список всех опросов сайта
 
 .contests
-  - if @active.any?
+  - @contests_groups.each do |state, group|
     .menu-block
-      .subheadline Активно
-      - @active.each_with_index do |contest, index|
-        p
+      .subheadline #{t("activerecord.state_machines.contest.states.#{state}").capitalize}
+      - group.each_with_index do |contest, index|
+        .contest
           | #{index + 1}.
-          a href="#{contest_url contest}"
-            = contest.title
-
-  - if @created.any?
-    .menu-block
-      .subheadline Подготавливается
-      - @created.each_with_index do |contest, index|
-        p
-          | #{index + 1}.
-          - if user_signed_in? && current_user.contests_moderator?
-            a href="#{edit_contest_url contest}"
+          - if !contest.created? || (user_signed_in? && current_user.contests_moderator?)
+            - if !contest.created? && !contest.proposing?
+              .date #{contest.started_on.strftime '%d.%m.%Y'} - #{contest.rounds.last.matches.last.finished_on.strftime '%d.%m.%Y'}
+            a href="#{contest_url contest}"
               = contest.title
           - else
-            span = contest.title
-
-  - if @finished.any?
-    .menu-block
-      .subheadline Завершено
-      - @finished.each_with_index do |contest, index|
-        p
-          | #{index + 1}.
-          a href="#{contest_url contest}"
             = contest.title

@@ -10,15 +10,15 @@ header.head.misc
 
 = render partial: 'contests/menu', locals: { contest: @contest }
 
-- cache "contests/users/#{@contest.displayed_vote.id}-#{@contest.displayed_vote.updated_at}-#{russian_names_key}", expires_in: @contest.displayed_vote.finished? ? nil : 1.hour do
+- cache "contests/users/#{@contest.displayed_match.id}-#{@contest.displayed_match.updated_at}-#{russian_names_key}", expires_in: @contest.displayed_match.finished? ? nil : 1.hour do
   .contest.item-content
     .votes
       .menu-block
         .left-votes
-          .options-floated
+          .options-floated.count
             = @contest.left_voters.size
           .subheadline.m10
-            = localized_name @contest.displayed_vote.left
+            = localized_name @contest.displayed_match.left
           - if @contest.left_voters.any?
             .voters
               - @contest.left_voters.each do |user|
@@ -28,10 +28,10 @@ header.head.misc
             p Нет проголосовавших.
 
         .right-votes
-          .options-floated
+          .options-floated.count
             = @contest.right_voters.size
           .subheadline.m10
-            = localized_name @contest.displayed_vote.right
+            = localized_name @contest.displayed_match.right
           - if @contest.right_voters.any?
             .voters
               - @contest.right_voters.each do |user|
@@ -42,7 +42,7 @@ header.head.misc
 
       - if @contest.refrained_voters.any?
         .refrained-votes
-          .options-floated
+          .options-floated.count
             = @contest.refrained_voters.size
           .subheadline.m10 Воздержались
           .voters

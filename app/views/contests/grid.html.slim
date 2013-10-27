@@ -18,19 +18,19 @@ html
       .contest-grid class="#{@contest.strategy_type}"
         .final
           .round
-            .vote
+            .match
               .entry.grid
                 - if @contest.rounds.last.finished?
                   p.finalist
-                    a href="#{url_for(@contest.final_vote.winner)}"
-                      = localized_name @contest.final_vote.winner
+                    a href="#{url_for @contest.final_match.winner}"
+                      = localized_name @contest.final_match.winner
                 - else
                   p.unknown ???
                 p.date
-                  = Russian::strftime @contest.final_vote.started_on, '%e %b'
-                  - if @contest.final_vote.started_on.strftime('%d.%m') != @contest.final_vote.finished_on.strftime('%d.%m')
+                  = Russian::strftime @contest.final_match.started_on, '%e %b'
+                  - if @contest.final_match.started_on.strftime('%d.%m') != @contest.final_match.finished_on.strftime('%d.%m')
                     | &nbsp;&ndash;&nbsp;
-                    = Russian::strftime @contest.final_vote.finished_on, '%e %b'
+                    = Russian::strftime @contest.final_match.finished_on, '%e %b'
           .left-border
 
         .winners
@@ -40,10 +40,10 @@ html
             .round class="round-#{round.number} round-#{round.additional ? 'a' : 'n'}"
               .title
                 | &nbsp;
-              .votes
-                - round.votes.each do |vote|
-                  - next if vote.group == ContestRound::L
-                  = render partial: 'contests/grid_vote', locals: { contest: @contest, round: round, vote: vote, losers_finalist: false }
+              .matches
+                - round.matches.each do |match|
+                  - next if match.group == ContestRound::L
+                  = render partial: 'contests/grid_match', locals: { contest: @contest, round: round, match: match, losers_finalist: false }
 
         - if @contest.strategy.with_additional_rounds?
           .clearfix.m30
@@ -53,7 +53,7 @@ html
               .round class="round-#{round.number} round-#{round.additional ? 'a' : 'n'}"
                 .title
                   | &nbsp;
-                .votes
-                  - round.votes.each do |vote|
-                    - next unless vote.group == ContestRound::L || @contest.rounds.last == round
-                    = render partial: 'contests/grid_vote', locals: { contest: @contest, round: round, vote: vote, losers_finalist: @contest.rounds.last == round }
+                .matches
+                  - round.matches.each do |match|
+                    - next unless match.group == ContestRound::L || @contest.rounds.last == round
+                    = render partial: 'contests/grid_match', locals: { contest: @contest, round: round, match: match, losers_finalist: @contest.rounds.last == round }

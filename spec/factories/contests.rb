@@ -2,35 +2,40 @@ FactoryGirl.define do
   factory :contest do
     title "MyString"
     user
+    member_type { [:anime, :character].sample }
     strategy_type :double_elimination
-    description "MyString2"
     started_on Date.today
-    votes_per_round 999
-    vote_duration 1
-    vote_interval 1
+    matches_per_round 999
+    match_duration 1
+    matches_interval 1
     user_vote_key 'can_vote_1'
+    suggestions_per_user 2
 
-    factory :contest_with_3_animes do
-      after(:create) do |contest|
-        1.upto(3) { contest.animes << FactoryGirl.create(:anime) }
+    trait :anime do
+      member_type :anime
+    end
+
+    trait :character do
+      member_type :character
+    end
+
+    after(:build) do |contest|
+      contest.stub :create_thread
+      contest.stub :update_permalink
+      contest.stub :sync_thread
+    end
+
+    trait :with_thread do
+      after(:build) do |contest|
+        contest.unstub :create_thread
       end
     end
 
-    factory :contest_with_5_animes do
-      after(:create) do |contest|
-        1.upto(5) { contest.animes << FactoryGirl.create(:anime) }
-      end
-    end
-
-    factory :contest_with_8_animes do
-      after(:create) do |contest|
-        1.upto(8) { contest.animes << FactoryGirl.create(:anime) }
-      end
-    end
-
-    factory :contest_with_19_animes do
-      after(:create) do |contest|
-        1.upto(19) { contest.animes << FactoryGirl.create(:anime) }
+    [3,5,6,8,19].each do |members|
+      factory "contest_with_#{members}_members" do
+        after(:create) do |contest|
+          members.times { contest.members << FactoryGirl.create(contest.member_type) }
+        end
       end
     end
   end

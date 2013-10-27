@@ -22,32 +22,7 @@ ActiveRecord::Schema.define(:version => 20130630132518) do
 
   add_index "contest_links", ["linked_id", "linked_type", "contest_id"], :name => "index_contest_links_on_linked_id_and_linked_type_and_contest_id"
 
-  create_table "contest_rounds", :force => true do |t|
-    t.integer  "contest_id"
-    t.string   "state",      :default => "created"
-    t.integer  "number"
-    t.boolean  "additional"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "contest_rounds", ["contest_id"], :name => "index_contest_rounds_on_contest_id"
-
-  create_table "contest_user_votes", :force => true do |t|
-    t.integer  "contest_vote_id", :null => false
-    t.integer  "user_id",         :null => false
-    t.integer  "item_id",         :null => false
-    t.string   "ip",              :null => false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "contest_user_votes", ["contest_vote_id", "ip"], :name => "index_contest_user_votes_on_contest_vote_id_and_ip", :unique => true
-  add_index "contest_user_votes", ["contest_vote_id", "item_id"], :name => "index_contest_user_votes_on_contest_vote_id_and_item_id"
-  add_index "contest_user_votes", ["contest_vote_id", "user_id"], :name => "index_contest_user_votes_on_contest_vote_id_and_user_id", :unique => true
-  add_index "contest_user_votes", ["contest_vote_id"], :name => "index_contest_user_votes_on_contest_vote_id"
-
-  create_table "contest_votes", :force => true do |t|
+  create_table "contest_matches", :force => true do |t|
     t.integer  "round_id"
     t.string   "state",       :default => "created"
     t.string   "group"
@@ -62,24 +37,62 @@ ActiveRecord::Schema.define(:version => 20130630132518) do
     t.integer  "winner_id"
   end
 
-  add_index "contest_votes", ["round_id"], :name => "index_contest_votes_on_contest_round_id"
+  add_index "contest_matches", ["round_id"], :name => "index_contest_votes_on_contest_round_id"
+
+  create_table "contest_rounds", :force => true do |t|
+    t.integer  "contest_id"
+    t.string   "state",      :default => "created"
+    t.integer  "number"
+    t.boolean  "additional"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "contest_rounds", ["contest_id"], :name => "index_contest_rounds_on_contest_id"
+
+  create_table "contest_suggestions", :force => true do |t|
+    t.integer  "contest_id"
+    t.integer  "user_id"
+    t.integer  "item_id"
+    t.string   "item_type"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  add_index "contest_suggestions", ["contest_id"], :name => "index_contest_suggestions_on_contest_id"
+  add_index "contest_suggestions", ["item_id"], :name => "index_contest_suggestions_on_item_id"
+  add_index "contest_suggestions", ["user_id"], :name => "index_contest_suggestions_on_user_id"
+
+  create_table "contest_user_votes", :force => true do |t|
+    t.integer "contest_match_id", :null => false
+    t.integer "user_id",          :null => false
+    t.integer "item_id",          :null => false
+    t.string  "ip",               :null => false
+  end
+
+  add_index "contest_user_votes", ["contest_match_id", "ip"], :name => "index_contest_user_votes_on_contest_vote_id_and_ip", :unique => true
+  add_index "contest_user_votes", ["contest_match_id", "item_id"], :name => "index_contest_user_votes_on_contest_vote_id_and_item_id"
+  add_index "contest_user_votes", ["contest_match_id", "user_id"], :name => "index_contest_user_votes_on_contest_vote_id_and_user_id", :unique => true
+  add_index "contest_user_votes", ["contest_match_id"], :name => "index_contest_user_votes_on_contest_vote_id"
 
   create_table "contests", :force => true do |t|
     t.string   "title"
     t.text     "description"
     t.integer  "user_id"
-    t.string   "state",           :default => "created"
+    t.string   "state",                :default => "created"
     t.date     "started_on"
-    t.integer  "votes_per_round"
-    t.integer  "vote_duration"
-    t.integer  "vote_interval"
+    t.integer  "matches_per_round"
+    t.integer  "match_duration"
+    t.integer  "matches_interval"
     t.integer  "wave_days"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "permalink"
     t.date     "finished_on"
     t.string   "user_vote_key"
-    t.string   "strategy_type",   :default => "Contest::DoubleEliminationStrategy", :null => false
+    t.string   "strategy_type",        :default => "double_elimination", :null => false
+    t.integer  "suggestions_per_user"
+    t.string   "member_type",          :default => "anime"
   end
 
   add_index "contests", ["updated_at"], :name => "index_contests_on_updated_at"

@@ -1,63 +1,49 @@
 $ ->
-  $('.anime-suggest').make_completable 'Название аниме...', accept_complete
+  suggest_placeholder = if $('.edit.contest .member-suggest').data('member_type') == 'anime'
+    'Название аниме...'
+  else
+    'Имя персонажа...'
+
+  $('.edit.contest .member-suggest').make_completable suggest_placeholder
+  $('.edit .proposing .hidden').removeClass 'hidden'
 
 # сохранение опроса
 $(document.body).on 'click', '.edit .save', ->
   $(@).parents('form').trigger 'submit'
 
 # удаление элемента из опроса
-$(document.body).on 'click', '.edit .item-minus', ->
-  $(@).parent().remove()
-  recalc_animes_count()
-  #recalc_duration()
+$(document.body).on 'click', '.edit .item-delete', ->
+  $(@).closest('li').remove()
+  update_members_count()
 
-# автокомплит
-accept_complete = (e, id, text, label) ->
+$('.edit .proposing .take').on 'click', ->
+  $('.edit.contest .member-suggest').trigger 'autocomplete:success', [$(@).data('id'), $(@).data('text')]
+  $('.edit.contest .member-suggest').trigger 'blur'
+
+
+$('.edit.contest .member-suggest').on 'autocomplete:success', (e, id, text, label) ->
   return if !id || !text
 
-  $this = $(@)
-  if $this.hasClass('anime-suggest')
-    type = 'animes'
-    url = '/animes/'+id
+  if $(@).hasClass('member-suggest')
+    url = "/#{$(@).data('member_type')}s/"+id
     bubbled = true
 
-  $container = $this.next().next().children('.container')
+  $container = $(@).next().next().children('.container')
   return if $container.find('[value="'+id+'"]').length
 
   $container.append(
     '<li>' +
-      '<span class="item-minus"></span>' +
-      '<input type="hidden" name="'+type+'[]" value="'+id+'" />' +
+      '<input type="hidden" name="members[]" value="'+id+'" />' +
       '<a href="'+url+'" ' +
         (if bubbled then 'class="bubbled" data-remote="true"' else '') +
         '>'+text+'</a>' +
+      '<span class="bracket-actions"><span class="item-delete">удалить</span></span>' +
     '</li>'
   )
   process_current_dom() if bubbled
-  $this.attr('value', '')
-  recalc_animes_count()
-  #recalc_duration()
-
-#$(document.body).on 'change', '#contest_votes_per_round, #contest_rounds_interval, #contest_round_duration', ->
-  #recalc_duration()
+  $(@).attr value: ''
+  update_members_count()
 
 # пересчёт числа аниме
-recalc_animes_count = ->
-  $('.animes-count').html $('#animes_').next().find('a').length
-
-# пересчёт длительности контеста
-#recalc_duration = ->
-  #animes = $('#animes_').next().find('a').length
-  #votes = parseFloat(fac(animes)) / fac(2) / fac(animes - 2)
-
-  #votes_per_round = parseInt $('#contest_votes_per_round').val()
-  #rounds_interval = parseInt $('#contest_vote_interval').val()
-  #round_duration = parseInt $('#contest_vote_duration').val()
-
-  #$('#contest_duration_in_days').val(Math.ceil(votes / votes_per_round) * rounds_interval)
-
-#fac = (i) ->
-  #if i < 2
-    #1
-  #else
-    #i * fac(i - 1)
+update_members_count = ->
+  $('.members-count').html $('#members_').next().find('a').length

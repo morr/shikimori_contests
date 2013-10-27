@@ -13,7 +13,10 @@
   .menu-block {
     @include clearfix;
   }
-  .results a, .grid a,  {
+  .status .subcontent {
+    @include clearfix;
+  }
+  .results, .grid a,  {
     @include text-font;
     @include normal-link;
     float: right;
@@ -45,7 +48,7 @@
       @include ellipsis;
       display: block;
     }
-    .menu-vote-link {
+    .menu-match-link {
       @include link-color($gray-color);
       margin-left: 5px;
       float: right;

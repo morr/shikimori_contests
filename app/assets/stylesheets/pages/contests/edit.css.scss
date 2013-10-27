@@ -40,12 +40,8 @@
         @include text-font;
         @include normal-link;
         @include ellipsis;
-        display: block;
-
-        .score {
-          color: $gray-color;
-          padding-left: 7px;
-        }
+        float: left;
+        max-width: 200px;
       }
     }
     .name.tags {
@@ -72,22 +68,11 @@
   .subcontent:last-child {
     margin-bottom: 0;
   }
-  .columns {
-    @include clearfix;
-    margin-bottom: 30px;
-
-    .left-column {
-      float: left;
-      width: 477px;
-      margin-right: 30px;
-    }
-    .right-column {
-      float: left;
-      width: 477px;
-    }
-  }
   .grid a {
     @include normal-link;
     @include text-font;
+  }
+  .suggestions {
+    margin-top: 30px;
   }
 }

@@ -5,17 +5,18 @@ Site::Application.routes.draw do
     end
     member do
       get :start
-      #get :finish
       get :build
+      get :propose
       get :grid
       get 'rounds/:round', action: 'show', as: 'round'
-      get 'rounds/:round/vote/:vote_id', action: 'show', as: 'round_vote'
-      get 'rounds/:round/vote/:vote_id/users', action: 'users', as: 'round_vote_users'
+      get 'rounds/:round/match/:match_id', action: 'show', as: 'round_match'
+      get 'rounds/:round/match/:match_id/users', action: 'users', as: 'round_match_users'
     end
 
-    resources :contest_votes, path: 'votes' do
+    resources :contest_suggestions, path: 'suggestions', only: [:show, :create, :destroy]
+    resources :contest_matches, path: 'matches' do
       member do
-        post 'vote/:variant' => 'contest_votes#vote', as: 'vote'
+        post 'vote/:variant' => 'contest_matches#vote', as: 'vote'
       end
     end
   end

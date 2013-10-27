@@ -8,4 +8,4 @@ header.head
     = @page_title.last
   = render partial: 'site/breadcrumbs', object: breadcrumbs, formats: :html
 
-= render :partial => 'contests/form', locals: { contest: @contest }, formats: :html
+= render partial: 'contests/form', locals: { contest: @contest }, formats: :html
